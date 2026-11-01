@@ -3,3 +3,6 @@ __pycache__/
 cookies.txt
 *.cookies.txt
 
+refresh.log
+refresh.log.old
+

@@ -72,14 +72,31 @@ YouTube refuses extraction from datacenter IPs ("Sign in to confirm you're not a
 bot"). The job fails rather than committing garbage, so the existing playlist
 survives, but nothing refreshes.
 
-**Resolution has to happen from a residential connection.** Use
-`refresh-termux.sh` on an always-on phone (or any home device), which resolves
-locally and pushes the result here. GitHub then acts purely as a static host —
-which is all it needs to be for OTT Navigator.
+**Resolution has to happen from a residential connection.** This is handled by
+`refresh.ps1` on the home laptop, which resolves the playlist and pushes the
+result here. GitHub then acts purely as a static host — which is all it needs to
+be for OTT Navigator.
 
-Setup is documented at the top of `refresh-termux.sh`. The workflow in
-`.github/workflows/refresh.yml` is kept for reference but should stay disabled
-while resolution happens on-device.
+It is registered as the Windows scheduled task **`YouTubeIPTV Refresh`**, running
+every 2 hours, well inside the ~6 h link lifetime. The task uses
+"start when available", so if the laptop is asleep at a scheduled time it runs
+as soon as it wakes rather than skipping.
+
+```
+# run it by hand
+powershell -ExecutionPolicy Bypass -File refresh.ps1
+
+# inspect / change the schedule
+Get-ScheduledTask -TaskName "YouTubeIPTV Refresh"
+Unregister-ScheduledTask -TaskName "YouTubeIPTV Refresh"
+```
+
+Logs go to `refresh.log` (gitignored).
+
+`refresh-termux.sh` is an equivalent for an always-on Android phone, if the
+laptop is going to be off for long stretches. The GitHub workflow in
+`.github/workflows/refresh.yml` is kept for reference only and stays disabled —
+it cannot work from datacenter IPs.
 
 ## Optional: the clock
 
