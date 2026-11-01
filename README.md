@@ -29,7 +29,7 @@ This design sidesteps that entirely.
 2. Push this folder:
 
    ```powershell
-   cd C:\Users\RANDEV\YouTubeIPTV\cloud
+   cd C:\Users\RANDEV\Documents\GitHub\YouTubeIPTV\cloud
    git init
    git add .
    git commit -m "channel"
