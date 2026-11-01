@@ -35,10 +35,15 @@ git pull --rebase --quiet 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) { Log "warning: git pull failed, continuing" }
 
 Log "resolving playlist (this takes ~4-6 minutes)"
-python make_playlist.py --url $Playlist --name $Name --max-minutes 180 --out channel.m3u *>> $Log
+$tmp = "$Log.tmp"
+python make_playlist.py --url $Playlist --name $Name --max-minutes 180 --out channel.m3u *> $tmp
+$pyExit = $LASTEXITCODE
+# Python's output lands in UTF-16 via *>; re-append as text so the log stays readable.
+Get-Content $tmp | Add-Content -Path $Log
+Remove-Item $tmp -Force -ErrorAction SilentlyContinue
 
-if ($LASTEXITCODE -ne 0) {
-    Log "resolve failed (exit $LASTEXITCODE) - previous playlist left untouched"
+if ($pyExit -ne 0) {
+    Log "resolve failed (exit $pyExit) - previous playlist left untouched"
     exit 1
 }
 if (-not (Test-Path "channel.m3u") -or (Get-Item "channel.m3u").Length -eq 0) {
