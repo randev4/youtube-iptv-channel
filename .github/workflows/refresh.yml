@@ -1,0 +1,51 @@
+name: Refresh channel
+
+# YouTube's direct links expire ~6 h after they are resolved, so we rebuild the
+# playlist well inside that window. Gaps in the opportunity: GitHub may delay
+# scheduled runs under load, so 2 h gives a 3x safety margin.
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-channel
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install yt-dlp
+        run: pip install --upgrade yt-dlp
+
+      - name: Resolve playlist
+        # If this fails or resolves too few videos, make_playlist.py exits
+        # non-zero and the previous (still valid) playlist is left untouched.
+        run: |
+          python make_playlist.py \
+            --url "${{ vars.PLAYLIST_URL || 'https://www.youtube.com/playlist?list=PL87398570A6DD45C0' }}" \
+            --name "${{ vars.CHANNEL_NAME || 'Bizarre Foods' }}" \
+            --out channel.m3u
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "channel-bot"
+          git config user.email "channel-bot@users.noreply.github.com"
+          git add channel.m3u
+          if git diff --staged --quiet; then
+            echo "no change"
+          else
+            git commit -m "refresh $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi
