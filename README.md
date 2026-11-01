@@ -65,6 +65,22 @@ You'll get one channel per episode, named and numbered, under the group
 If a run fails, `make_playlist.py` refuses to overwrite the playlist when fewer
 than half the lookups succeed, so a broken run won't destroy a working file.
 
+## Important: GitHub runners are blocked by YouTube
+
+The workflow resolves **0 of 253** videos when run on GitHub's infrastructure —
+YouTube refuses extraction from datacenter IPs ("Sign in to confirm you're not a
+bot"). The job fails rather than committing garbage, so the existing playlist
+survives, but nothing refreshes.
+
+**Resolution has to happen from a residential connection.** Use
+`refresh-termux.sh` on an always-on phone (or any home device), which resolves
+locally and pushes the result here. GitHub then acts purely as a static host —
+which is all it needs to be for OTT Navigator.
+
+Setup is documented at the top of `refresh-termux.sh`. The workflow in
+`.github/workflows/refresh.yml` is kept for reference but should stay disabled
+while resolution happens on-device.
+
 ## Optional: the clock
 
 A static playlist has no concept of time — you pick an episode and it starts at
